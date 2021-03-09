@@ -182,7 +182,7 @@ class DialogueStateTracker:
         self.sender_id = sender_id
         # slots that can be filled in this domain
         if slots is not None:
-            self.slots = {slot.name: copy.copy(slot) for slot in slots}
+            self.slots = {slot.name: copy.copy(slot) for slot in slots} # TODO: JUZL:
         else:
             self.slots = AnySlotDict()
         # file source of the messages
@@ -273,7 +273,7 @@ class DialogueStateTracker:
             }.items()
         )
 
-    def past_states(self, domain: Domain) -> List[State]:
+    def past_states(self, domain: Domain, omit_unset_slots: bool = False,) -> List[State]:
         """Generate the past states of this tracker based on the history.
 
         Args:
@@ -282,7 +282,7 @@ class DialogueStateTracker:
         Returns:
             a list of states
         """
-        return domain.states_for_tracker_history(self)
+        return domain.states_for_tracker_history(self, omit_unset_slots=omit_unset_slots)
 
     def change_loop_to(self, loop_name: Optional[Text]) -> None:
         """Set the currently active loop.
@@ -780,12 +780,15 @@ class DialogueStateTracker:
 
         for slot in self.slots.values():
             slot.reset()
+            slot.has_been_set = False
 
     def _set_slot(self, key: Text, value: Any) -> None:
         """Set the value of a slot if that slot exists."""
 
         if key in self.slots:
-            self.slots[key].value = value
+            slot = self.slots[key]
+            slot.value = value
+            slot.has_been_set = True
         else:
             logger.error(
                 f"Tried to set non existent slot '{key}'. Make sure you "

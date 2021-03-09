@@ -45,11 +45,12 @@ class Slot:
                 influence the predictions of the dialogue polices.
         """
         self.name = name
-        self.value = initial_value
+        self._value = initial_value
         self.initial_value = initial_value
         self._value_reset_delay = value_reset_delay
         self.auto_fill = auto_fill
         self.influence_conversation = influence_conversation
+        self._has_been_set = False
 
     def feature_dimensionality(self) -> int:
         """How many features this single slot creates.
@@ -99,6 +100,20 @@ class Slot:
 
     def reset(self) -> None:
         self.value = self.initial_value
+        self._has_been_set = False
+
+    @property
+    def value(self) -> Any:
+        return self._value
+
+    @value.setter
+    def value(self, value: Any) -> None:
+        self._value = value
+        self._has_been_set = True
+
+    @property
+    def has_been_set(self):
+        return self._has_been_set
 
     def __str__(self) -> Text:
         return f"{self.__class__.__name__}({self.name}: {self.value})"

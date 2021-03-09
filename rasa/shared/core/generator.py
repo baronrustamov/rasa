@@ -84,7 +84,7 @@ class TrackerWithCachedStates(DialogueStateTracker):
             tracker.update(e)
         return tracker
 
-    def past_states_for_hashing(self, domain: Domain) -> Deque[FrozenState]:
+    def past_states_for_hashing(self, domain: Domain, omit_unset_slots: bool = False,) -> Deque[FrozenState]:
         # we need to make sure this is the same domain, otherwise things will
         # go south. but really, the same tracker shouldn't be used across
         # domains
@@ -93,7 +93,7 @@ class TrackerWithCachedStates(DialogueStateTracker):
         # if don't have it cached, we use the domain to calculate the states
         # from the events
         if self._states_for_hashing is None:
-            states = super().past_states(domain)
+            states = super().past_states(domain, omit_unset_slots=omit_unset_slots)
             self._states_for_hashing = deque(
                 self.freeze_current_state(s) for s in states
             )
@@ -107,8 +107,8 @@ class TrackerWithCachedStates(DialogueStateTracker):
             for frozen_state in frozen_states
         ]
 
-    def past_states(self, domain: Domain) -> List[State]:
-        states_for_hashing = self.past_states_for_hashing(domain)
+    def past_states(self, domain: Domain, omit_unset_slots: bool = False,) -> List[State]:
+        states_for_hashing = self.past_states_for_hashing(domain, omit_unset_slots=omit_unset_slots)
         return self._unfreeze_states(states_for_hashing)
 
     def clear_states(self) -> None:
